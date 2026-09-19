@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sovereign AI Workbench</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; padding: 0 16px; }
+    section { border: 1px solid #ddd; border-radius: 10px; padding: 18px; margin: 16px 0; }
+    textarea, input, select { width: 100%; margin: 8px 0; padding: 9px; box-sizing: border-box; }
+    button { padding: 10px 16px; cursor: pointer; }
+    pre { white-space: pre-wrap; background: #f5f5f5; padding: 12px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Sovereign AI Workbench</h1>
+  <p>Moss retrieval with a local fallback, basic policy checks, and feedback logging.</p>
+
+  <section>
+    <h2>1. Upload document</h2>
+    <input id="file" type="file" accept=".txt">
+    <button onclick="uploadDocument()">Upload</button>
+    <pre id="uploadResult"></pre>
+  </section>
+
+  <section>
+    <h2>2. Ask the workbench</h2>
+    <select id="role">
+      <option value="employee">Employee</option>
+      <option value="manager">Manager</option>
+      <option value="admin">Admin</option>
+    </select>
+    <textarea id="question" rows="4" placeholder="Ask something about your document"></textarea>
+    <button onclick="askQuestion()">Ask</button>
+    <pre id="answer"></pre>
+  </section>
+
+  <section>
+    <h2>3. Give feedback</h2>
+    <input id="rating" type="number" min="1" max="5" value="5">
+    <textarea id="comment" rows="3" placeholder="What should be improved?"></textarea>
+    <button onclick="sendFeedback()">Submit feedback</button>
+    <pre id="feedbackResult"></pre>
+  </section>
+
+<script>
+let latestQuestion = "";
+let latestAnswer = "";
+
+async function uploadDocument() {
+  const file = document.getElementById("file").files[0];
+  if (!file) return;
+  const form = new FormData();
+  form.append("file", file);
+  const response = await fetch("/documents", {method: "POST", body: form});
+  document.getElementById("uploadResult").textContent =
+    JSON.stringify(await response.json(), null, 2);
+}
+
+async function askQuestion() {
+  latestQuestion = document.getElementById("question").value;
+  const role = document.getElementById("role").value;
+  const response = await fetch("/query", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({question: latestQuestion, user_role: role})
+  });
+  const data = await response.json();
+  latestAnswer = data.answer || "";
+  document.getElementById("answer").textContent = JSON.stringify(data, null, 2);
+}
+
+async function sendFeedback() {
+  const response = await fetch("/feedback", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      question: latestQuestion,
+      answer: latestAnswer,
+      rating: Number(document.getElementById("rating").value),
+      comment: document.getElementById("comment").value
+    })
+  });
+  document.getElementById("feedbackResult").textContent =
+    JSON.stringify(await response.json(), null, 2);
+}
+</script>
+</body>
+</html>

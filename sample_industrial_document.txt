@@ -1,0 +1,7 @@
+Hydrogen Safety Notes
+
+Hydrogen is highly flammable and requires controlled handling.
+Storage areas should have suitable ventilation and leak detection.
+Personnel must follow documented operating procedures.
+Emergency shutdown procedures should be tested regularly.
+Access to sensitive operating documents should be limited according to employee roles.
